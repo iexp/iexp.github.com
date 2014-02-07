@@ -1,0 +1,6 @@
+encoding:       utf-8
+safe:           true
+pygments:       true
+paginate:       9
+paginate_path:  "page:num"
+title:          NOTEPAD
