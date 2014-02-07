@@ -4,3 +4,9 @@ pygments:       true
 paginate:       9
 paginate_path:  "page:num"
 title:          NOTEPAD
+permalink:      /:year/:month/:day/:title
+title:          Kernel hack
+description:    Exploit, Kernel Hack
+author:         iexp
+author_email:   firmware7@gmail.com
+disqus_id:      iexp
