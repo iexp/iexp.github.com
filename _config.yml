@@ -3,10 +3,11 @@ safe:           true
 pygments:       true
 paginate:       9
 paginate_path:  "page:num"
-title:          NOTEPAD
 permalink:      /:year/:month/:day/:title
-title:          Kernel hack
-description:    Exploit, Kernel Hack
+title:          Kernel Hack
+description:    操作系统 内核 漏洞 逆向
+markdown:       redcarpet
+redcarpet:
 author:         iexp
 author_email:   firmware7@gmail.com
 disqus_id:      iexp

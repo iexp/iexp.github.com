@@ -33,7 +33,7 @@ task :tags do
     html << <<-HTML
 ---
 layout: default
-title: wulujia.com
+title: iexp.github.com
 ---
 <head>
   <h1><a href="/">{{ site.title }}</a></h1>
