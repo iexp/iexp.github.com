@@ -2,7 +2,7 @@
 layout: post
 title:  Mac优秀软件记录
 date: 2013-11-04 19:19:22
-categories: product
+categories: vul
 tags: mac software
 ---
 
