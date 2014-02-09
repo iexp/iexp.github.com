@@ -17,7 +17,7 @@ task :ci do
   system "rake tags"
   system "git add ."
   system "git commit -a -m \"#{message}\""
-  system "git push origin gh-pages"
+  system "git push"
 end
 
 desc 'Generate tags pages'
