@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  CVE-2008-4279 漏洞分析
+title:  VMware x64 guest os EOP(CVE-2008-4279)
 date: 2012-05-07 17:14:28
 categories: vul
 tags: CVE-2008-4279 VMware x64 EOP
