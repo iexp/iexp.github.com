@@ -4,7 +4,7 @@ pygments:       true
 paginate:       9
 paginate_path:  "page:num"
 permalink:      /:year/:month/:day/:title
-title:          NOTEPAD
+title:          NotePad
 description:    OS Kernel Exploit
 author:         iexp
 author_email:   firmware7@gmail.com
