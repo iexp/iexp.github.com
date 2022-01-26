@@ -1,0 +1,15 @@
+# For documentation on this file, see:
+# https://github.com/riggraz/no-style-please#customize-the-menu
+
+entries:
+  # - title: me
+    # entries:
+      # - title: email
+        # url: mailto:firmware7@gmail.com
+ 
+  - title: all posts
+    post_list:
+      limit: 10
+      show_more: true
+      show_more_text: See archive...
+      show_more_url: archive.html
