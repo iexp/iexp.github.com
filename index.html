@@ -11,8 +11,6 @@ layout: default
 	{% endfor %}
 </div>
 
-{% include toc.html %}
-
 <h2><span>博文</span></h2>
 <!-- This loops through the paginated posts -->
 <ul>
@@ -32,7 +30,7 @@ layout: default
     &nbsp;&nbsp;&nbsp;&nbsp;<span>&laquo; 上一页</span>&nbsp;&nbsp;
   {% endif %}
 
-  {% for page in (1.paginator.total_pages) %}
+  {% for page in (1..paginator.total_pages) %}
     {% if page == paginator.page %}
       <em>{{ page }}</em>
     {% elsif page == 1 %}
@@ -52,7 +50,6 @@ layout: default
 
 <h2>链接</h2>
 <ul>
-
     <li>
       <a href="https://source.android.com/security/bulletin">Android Security Bulletin</a>
       <span>&mdash; Android Security Bulletin </span>
@@ -64,7 +61,5 @@ layout: default
       <span>&mdash; Microsoft Security Bulletin</span>
       <br/>
     </li>  
-     
-  
  
 </ul>
