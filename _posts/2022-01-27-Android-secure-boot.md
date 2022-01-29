@@ -17,16 +17,14 @@ author: lihs
 ```
 上电 ----> 片上程序 --签名校验（此处的公钥由efuse熔丝保护)--> ATF BL31 --签名校验--> Secure OS --签名校验--> 其它镜像
 ```
-
 安全启动流程：
 1. 逐级校验方式 ， 验签从`片上程序`开始 。
-2. 镜像 (ATF BL3-1[^1], SecureOS, Kernel)采用 “摘要算法” + “非对称签名算法”进行签名。
+2. 镜像 (ATF BL31[^1], SecureOS, Kernel)采用 “摘要算法” + “非对称签名算法”进行签名。
 3. 根公钥的HASH值烧写在芯片的OTP中。
 
 ## 实现
 
 Fastboot模式下刷镜像流程：
-
 ```c
 /*
 fastboot flash {partition} {*.img} 烧写指定分区
