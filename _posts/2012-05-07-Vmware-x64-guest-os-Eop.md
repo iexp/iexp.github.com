@@ -4,12 +4,14 @@ title:  VMware x64 guest os EOP(CVE-2008-4279)
 date: 2012-05-07 17:14:28
 categories: vul
 tags: CVE-2008-4279 VMware x64 EOP
+toc: true
+author: lihs
 ---
 
-# 漏洞描述: 
+## 漏洞描述
 在VMware x64 Guest OS中, 利用其模拟指令的缺陷可导致以ring 0权限执行任意代码。
 
-# 漏洞分析: 
+## 漏洞分析
 
 下面的伪汇编片断提供了一个 x64体系下中断处理函数的典型实现，结合Vmware的指令模拟缺陷可产生安全漏洞：  
 
