@@ -15,13 +15,13 @@ author: lihs
 阅读ARM TrustZone手册可知，内存的隔离是由TZASC(TrustZone Address Space Controller)来控制 ，TZASC可以把外部DDR分成多个区域 ，每个区域可以单独配置为安全区域或非安全区域 ，Normal World的代码只能访问非安全区域。 
 ![tzasc](/img/tee_sec/tzasc1.png)
 
-下面以TZC-380这款地址空间控制器来进行说明，其它型号控制器的原理也大同小异。
+下面以TZC-380[^1]这款地址空间控制器来进行说明，其它型号控制器的原理也大同小异。
 
 通过配置 TZASC的寄存器来设置不同属性的region，一个region表示 一段连续的物理地址空间，TZASC给每个region提供了一个可编程的安全属性域，只有在Secure状态下才允许修改这些寄存器，TZASC的基址不是固定的，不同厂商实现可能不同，但是每个寄存器的offset是固定的，如下所示：
 ![tzasc](/img/tee_sec/tzasc2.png)
 
 下面结合[OP-TEE代码](
-https://github.com/OP-TEE/optee_os/blob/9742eed4c9f48b886bd9bd40e7cbd80213baee00/core/drivers/tzc380.c)对配置 TZASC进行分析：
+https://github.com/OP-TEE/optee_os/blob/9742eed4c9f48b886bd9bd40e7cbd80213baee00/core/drivers/tzc380.c)[^4]对配置 TZASC进行分析：
 
 通过对region对应的控制寄存器进行设置来配置安全内存地址空间：
 
@@ -113,9 +113,9 @@ static TEE_Result imx_configure_tzasc(void)
 	return TEE_SUCCESS;
 }
 ```
-**Region 0用来设置整个地址空间的默认属性，它的基址为0，Size是由AXI_ADDRESS_MSB来配置**，因此Region 0除了安全属性字段之外，其它字段不允许设置。
+Region 0用来设置整个地址空间的默认属性，它的基址为0，Size是由AXI_ADDRESS_MSB来配置，因此Region 0除了安全属性字段之外，其它字段不允许设置。
 
-**下面以第一个region为例，对安全属性进行分析：**
+下面以第一个region为例，对安全属性进行分析：
 第一个region的属性为TZC_ATTR_SP_NS_RW：
 ```c
 #define TZC_SP_NS_W		BIT(0)
@@ -128,10 +128,9 @@ static TEE_Result imx_configure_tzasc(void)
 #define TZC_ATTR_SP_NS_RW	((TZC_SP_NS_W | TZC_SP_NS_R) << \
 				TZC_ATTR_SP_SHIFT)
 ```
-根据手册可知，TZC_SP_NS_W(b0001)是Non-secure write和 Secure write，TZC_SP_NS_R(b0010)是Non-secure read和Secure read，所以**TZC_ATTR_SP_NS_RW 表示 Non-secure和Secure状态可读写，即配置了DRAM地址空间的属性为非安全和安全状态都可以读写。**
+根据手册可知，TZC_SP_NS_W(b0001)是Non-secure write和 Secure write，TZC_SP_NS_R(b0010)是Non-secure read和Secure read，所以TZC_ATTR_SP_NS_RW 表示 Non-secure和Secure状态可读写，即配置了DRAM地址空间的属性为非安全和安全状态都可以读写。
 ![tzasc](/img/tee_sec/tzasc4.png)
 
-**总结：**
 以上代码配置了CFG_TZDRAM_START开始的CFG_TZDRAM_SIZE大小的地址空间为**安全内存**，即只有安全状态下(TCR.NS=0)可以访问。CFG_DRAM_BASE开始的CFG_DRAM_SIZE大小的地址空间为**普通内存**，安全和非安全状态下都可以访问。CFG_SHMEM_START开始的CFG_SHMEM_SIZE大小的地址空间为共享内存，安全和非安全状态都可以 访问 。
 
 [OP-TEE物理内存布局:](https://github.com/OP-TEE/optee_os/blob/master/core/arch/arm/include/mm/generic_ram_layout.h)
@@ -156,14 +155,14 @@ static TEE_Result imx_configure_tzasc(void)
 ```
 
 
-**至此，已经完成了安全内存的配置，接下来我们再来看下安全OS是如何使用这些物理内存的。**
+至此，已经完成了安全内存的配置，接下来我们再来看下安全OS是如何使用这些物理内存的。
 
 ## TEE OS 内存管理 
 
 [TEE OS启动时](
 https://github.com/OP-TEE/optee_os/blob/master/core/arch/arm/kernel/entry_a64.S)会调用core_init_mmu_map对安全内存地址空间进行映射 ：
 
-```c
+```asm
 #ifdef CFG_CORE_ASLR
 	mov	x0, x20
 	bl	get_aslr_seed        # x0用来保存开启aslr的seed
@@ -172,7 +171,7 @@ https://github.com/OP-TEE/optee_os/blob/master/core/arch/arm/kernel/entry_a64.S)
 #endif
 
 	adr	x1, boot_mmu_config
-	bl	core_init_mmu_map  # 记录PA和VA的对应关系，并初始化页表
+	bl	core_init_mmu_map    # 记录PA和VA的对应关系，并初始化页表
 
     ......
 
@@ -357,7 +356,9 @@ register_phys_mem这个宏使用关键字"section"将修饰的变量按照core_m
 		{ .name = (_name), .type = (_type), .addr = (_addr), \
 		  .size = (_size) }
 ```
-**值得注意的是，上面注册的TEE_RAM_START开始的物理地址 空间就是TZC-380配置的Region 2，即安全内存地址空间。**
+
+值得注意的是，上面注册的TEE_RAM_START开始的物理地址 空间就是TZC-380配置的Region 2，即安全内存地址空间。
+
 ```c
 #define TEE_RAM_START		TZDRAM_BASE
 #define TEE_RAM_PH_SIZE		TEE_RAM_VA_SIZE
@@ -404,11 +405,11 @@ void core_init_mmu_prtn(struct mmu_partition *prtn, struct tee_mmap_region *mm)
 	}
 }
 ```
-到这里，**TEE侧 OS已经完成了对物理内存的映射，包括安全内存和共享内存。** 在开启分页后，TEE OS已经可以访问这些虚拟内存地址空间。
+到这里，TEE侧OS已经完成了对物理内存的映射，包括安全内存和共享内存。 在开启分页后，TEE OS已经可以访问这些虚拟内存地址空间。
 
 ## 安全侧地址校验
 
-下面以符合GP规范的TEE接口为例，简单介绍下CA和TA的通信流程：
+下面以符合GP规范[^2][^3]的TEE接口为例，简单介绍下CA和TA的通信流程：
 
 ![ca_ta](/img/tee_sec/ca_ta.png)
 
@@ -448,7 +449,7 @@ __tee_entry_std
                   
 ```
 
-通过以上代码分析可知，**在调用TA的TA_InvokeCommandEntryPoint函数之前会对REE侧传入的参数类型进行检查 ，在TA代码中使用REE传入参数作为内存地址的场景下，如果未校验对应的参数类型或者参数类型为TEEC_VALUE_INPUT（与实际使用参数类型不匹配），则会绕过上面core_pbuf_is对REE传入PA的检查 ，可以传入任意值，这个值可以为安全内存PA，这样就可以导致以S_EL0权限读写任意安全内存。**
+通过以上代码分析可知，在调用TA的TA_InvokeCommandEntryPoint函数之前会对REE侧传入的参数类型进行检查 ，在TA代码中使用REE传入参数作为内存地址的场景下，如果未校验对应的参数类型或者参数类型为TEEC_VALUE_INPUT（与实际使用参数类型不匹配），则会绕过上面core_pbuf_is对REE传入PA的检查 ，可以传入任意值，这个值可以为安全内存PA，这样就可以导致以S_EL0权限读写任意安全内存。
 
 ## 总结 
 TEE作为可信执行环境，通常用于运行处理指纹、人脸、PIN码等关键敏感信息的可信应用，即使手机被ROOT，攻击者也无法获取这些敏感数据。因此TEE侧程序的安全至关重要，本文深入分析了TRUSTZONE物理内存隔离、TEEOS内存管理及TEE侧对REE传入地址的校验。在了解了这些原理之后，我们就可以进行漏洞挖掘了， 当然也能写出简单有效的FUZZ工具。只有对漏洞原理、攻击方法进行深入的理解 ，才能进行有效的防御。
@@ -457,11 +458,11 @@ TEE作为可信执行环境，通常用于运行处理指纹、人脸、PIN码�
 
 
 ## 参考
-1. TrustZone Address Space Controller TZC-380 Technical Reference Manual
-2. GlobalPlatform Device Technology TEE Client API Specification
-3. GlobalPlatform Device Technology TEE Internal API Specification
-4. OP-TEE
-5. Arm Trusted Firmware
+[^1]: TrustZone Address Space Controller TZC-380 Technical Reference Manual
+[^2]: GlobalPlatform Device Technology TEE Client API Specification
+[^3]: GlobalPlatform Device Technology TEE Internal API Specification
+[^4]: OP-TEE
+[^5]: Arm Trusted Firmware
 
 
 
