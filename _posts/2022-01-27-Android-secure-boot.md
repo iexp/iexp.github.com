@@ -19,7 +19,7 @@ author: lihs
 安全启动流程：
 1. 逐级校验方式 ， 验签从`片上程序`开始 。
 2. 镜像 (ATF BL31[^1], SecureOS, Kernel)采用 “摘要算法” + “非对称签名算法”进行签名。
-3. 根公钥的HASH值烧写在芯片的OTP中。
+3. 根公钥的HASH值烧写在芯片的OTP[^5]中。
 
 ## 实现
 
@@ -51,8 +51,7 @@ Rx_cmd
 ```
 
 ## 总结
-Android系统正常启动加载镜像或fastboot模式下刷镜像时，系统都会对要加载或刷入的镜像做完整性校验。`efuse中的公钥哈希保证了一级证书的RSA公钥不被篡改，通过RSA公钥和签名信息对一级证书内容进行签名验证（RSA-PSS方式），保证了一级证书内容的完整性. 而一级证书内容包含了下一级证书的RSA公钥哈希，其验签过程与一级证书相同。同样最后一级证书的RSA公钥哈希保存在上一级证书，其完整性也是通过RSA-PSS方式验证。最后一级证书内容包含了整个镜像数据的哈希，用于保证整个镜像的完整性。 这样OTP、一级证书、二级证书、三级证书和镜像数据就形成了信任链。` 这样只有通过厂商RSA 私钥签名的镜像才能被加载，也防止了刷机方式进行ROOT。
-RSA[^2]-PSS[^4]数字签名验证[^3]本质也是对比`两个途径获取的哈希值  ` ,一个是通过计算被签名数据 获取的哈希，另一个是通过RSA公钥 解密签名信息 获取的哈希，RSA公钥的完整性由efuse熔丝保护，RSA-PSS方式的验签只是加入了对原始数据hash拼接salt后的再一次哈希计算，增加了安全强度。
+Android系统正常启动加载镜像或fastboot模式下刷镜像时，系统都会对要加载或刷入的镜像做完整性校验。efuse[^6]中的公钥哈希保证了一级证书的RSA公钥不被篡改，通过RSA公钥和签名信息对一级证书内容进行签名验证（RSA-PSS方式），保证了一级证书内容的完整性. 而一级证书内容包含了下一级证书的RSA公钥哈希，其验签过程与一级证书相同。同样最后一级证书的RSA公钥哈希保存在上一级证书，其完整性也是通过RSA-PSS方式验证。最后一级证书内容包含了整个镜像数据的哈希，用于保证整个镜像的完整性。 这样OTP、一级证书、二级证书、三级证书和镜像数据就形成了信任链。 这样只有通过厂商RSA私钥签名的镜像才能被加载。RSA[^2]-PSS[^4]数字签名验证[^3]本质也是对比`两个途径获取的哈希值` ,一个是通过计算被签名数据获取的哈希，另一个是通过RSA公钥 解密签名信息 获取的哈希，RSA公钥的完整性由efuse熔丝保护，RSA-PSS方式的验签只是加入了对原始数据hash拼接salt后的再一次哈希计算，增加了安全强度。
 
 
 ## 参考
@@ -63,3 +62,6 @@ RSA[^2]-PSS[^4]数字签名验证[^3]本质也是对比`两个途径获取的哈
 [^3]:[数字签名：RSA-PSS 实现](https://blog.csdn.net/qq_34911465/article/details/78790377)
 
 [^4]:[RSA签名的PSS模式](https://cloud.tencent.com/developer/article/1376530)
+[^5]:[Security Enhanced Mobile Platform Design](https://cordis.europa.eu/docs/projects/cnect/3/257433/080/deliverables/001-D132.pdf)
+
+[^6]:[Arm® Platform Security Architecture Trusted Boot and Firmware Update](https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/PSA/DEN0072-PSA_TBFU_1.1-BETA0.pdf?revision=3ce2513a-ae0f-4b43-96a0-851ed67a640b&hash=1B993EECA4730C8D75D3D6AEC331D65F)
