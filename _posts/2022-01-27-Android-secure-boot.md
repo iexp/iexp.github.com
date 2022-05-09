@@ -8,7 +8,7 @@ toc: true
 author: lihs
 ---
 ## 介绍
-安全启动（Secure Boot)也叫验证启动(Verified Boot)。在支持安全启动的系统中，启动过程的每一步，在加载程序之前，都要验证待加载的程序，验证不通过则中止启动，从而保证系统在启动过程中加载的每一个模块都是安全的。安全启动被攻破后，teeos、kernel、system等分区镜像都是不可信的，攻击 者通过篡改这些镜像可达到攻击系统的目的，例如修改ramdisk进行永久root、安装第三方ROM、修改teeos来访问用户的敏感数据（如指纹、人脸、根密钥等）、修改运营商数据等 。
+安全启动（Secure Boot)也叫验证启动(Verified Boot)。在支持安全启动的系统中，启动过程的每一步，在加载程序之前，都要验证待加载的程序，验证不通过则中止启动，从而保证系统在启动过程中加载的每一个模块都是安全的。安全启动被攻破后，TEE、kernel、system等分区镜像都是不可信的，攻击 者通过篡改这些镜像可达到攻击系统的目的，例如修改ramdisk进行root、安装第三方ROM、通过patch TEEOS来访问用户的敏感数据（如指纹、人脸、PIN等）等 。
 
 ## 原理
 
@@ -23,19 +23,7 @@ author: lihs
 
 ## 实现
 
-Fastboot模式下刷镜像流程：
 ```c
-/*
-fastboot flash {partition} {*.img} 烧写指定分区
-例如：fastboot flash boot boot.img
-      fastboot flash system system.img
-*/
-Rx_cmd
- --->sub_usb_rx_ //接收adb 命令
-       -->sub_flash_func // 
-          -->sub_usbcmd_flash_func
-             -->sub_verify
-                -->sub_download_verify //
                    -->sub_image_verify
                       -->sub_imgsecure_verify   // 安全镜像校验 
                          --> sub_verify_cert    // 校验一级、二级以及内容证书
